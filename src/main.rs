@@ -35,52 +35,34 @@ unsafe fn kernel_init() -> ! {
     kernel_main();
 }
 
-const LOADER_LOGO: &str = r#"
-.____                     .___            
-|    |    _________     __| _/___________ 
-|    |   /  _ \__  \   / __ |/ __ \_  __ \
-|    |__(  <_> ) __ \_/ /_/ \  ___/|  | \/
-|_______ \____(____  /\____ |\___  >__|   
-        \/         \/      \/    \/
+const OS_LOGO: &str = r#"
+      ___                                      ___           ___     
+     /  /\          ___            ___        /  /\         /  /\    
+    /  /::\        /  /\          /__/\      /  /::\       /  /::\   
+   /  /:/\:\      /  /::\         \__\:\    /  /:/\:\     /__/:/\:\  
+  /  /::\ \:\    /  /:/\:\        /  /::\  /  /:/  \:\   _\_ \:\ \:\ 
+ /__/:/\:\_\:\  /  /::\ \:\    __/  /:/\/ /__/:/ \__\:\ /__/\ \:\ \:\
+ \__\/~|::\/:/ /__/:/\:\_\:\  /__/\/:/E.M \  \:\ /  /:/ \  \:\ \:\_\/
+    |  |:|::/  \__\/  \:\/:/  \  \::/      \  \:\  /:/   \  \:\_\:\  
+    |  |:|\/        \  \::/    \  \:\       \  \:\/:/     \  \:\/:/  
+    |__|:|~          \__\/      \__\/        \  \::/       \  \::/   
+     \__\|                                    \__\/         \__\/    
 "#;
 
 fn kernel_main() -> ! {
     use bsp::console::console;
     use console::interface::All;
 
-    println!("{}", LOADER_LOGO);
+    println!("{}", OS_LOGO);
     println!("Running on: {}", bsp::board_name());
     println!();
-    println!("Requesting binary!");
+    println!("RpiOS version 0.1 online");
+    println!("Echo mode on");
     console().flush();
-
     console().clear_rx();
 
-    // send three times '3' through UART to notify the pusher to send the kernel / binary
-    for _ in 0..3 {
-        console().write_char(3 as char);
+    loop {
+        let chr = console().read_char();
+        console().write_char(chr);
     }
-
-    // Read the binary's size.
-    let mut size: u32 = u32::from(console().read_char() as u8);
-    size |= u32::from(console().read_char() as u8) << 8;
-    size |= u32::from(console().read_char() as u8) << 16;
-    size |= u32::from(console().read_char() as u8) << 24;
-
-    console().write_char('O');
-    console().write_char('K');
-
-    let kernel_addr = bsp::memory::board_default_load_address() as *mut u8;
-
-    unsafe {
-        for i in 0..size {
-            core::ptr::write_volatile(kernel_addr.offset(i as isize), console().read_char() as u8);
-        }
-    }
-
-    println!("Received kernel, executing now!");
-    console().flush();
-
-    let kernel: fn() -> ! = unsafe { core::mem::transmute(kernel_addr) };
-    kernel();
 }

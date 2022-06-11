@@ -11,6 +11,7 @@
 // that need to be mapped physically.
 
 pub mod map {
+    #[allow(dead_code)]
     pub const BOARD_DEFAULT_LOAD_ADDRESS: usize =        0x8_0000;
 
     pub const GPIO_OFFSET:         usize = 0x0020_0000;
@@ -38,6 +39,7 @@ pub mod map {
 }
 
 #[inline(always)]
+#[allow(dead_code)]
 pub fn board_default_load_address() -> *const u64 {
     map::BOARD_DEFAULT_LOAD_ADDRESS as _
 }
